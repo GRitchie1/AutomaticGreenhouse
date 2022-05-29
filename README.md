@@ -42,7 +42,7 @@ The following parts are required to build one node PCB.
 | [TCA9548A I2C Multiplexer](https://thepihut.com/products/adafruit-tca9548a-i2c-multiplexer)  | 1  | I2C multiplexer to allow connection of up to 8 soil humidity sensors with the same I2C address  |
 | N-Channel Mosfet | 5 | Control outputs |
 
-The following sensors are required to build on node.
+The following sensors are required to build one node.
 
 | Sensor         | Qty | Description     |
 |--------------|-----|-----------------|
