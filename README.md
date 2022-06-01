@@ -11,9 +11,10 @@ The design of this project is intended to be highly modular, with the ability to
 | [Design](#design) | An overview of the design of the project |
 | [Parts Lists](#parts-lists) | Up to date parts lists for the project |
 | [PCBs](#pcbs) | Information regarding the design and manufacture of the custom printed circuit boards |
+| [Networking](#networking) | Information regarding the communication between the target nodes and the controller node. |
 
 ## Design
-Each target node in the system will be based upon a Raspberry Pi Pico and all hardware interfacing will be done using a custom PCB.  The controller node will be a Raspberry Pi 4 managed using [Balena](https://www.balena.io/).  Communication between the target nodes and the controller node will be handled using MQTT over Ethernet.
+Each target node in the system will be based upon a Raspberry Pi Pico and all hardware interfacing will be done using a custom PCB.  The controller node will be a Raspberry Pi 4 managed using [Balena](https://www.balena.io/).  Communication between the target nodes and the controller node is documented in [networking](#networking).
 
 Each node will feature space for 6 planters, and will have a modular irrigation system to allow for planters to be easily added and removed.
 
@@ -32,7 +33,6 @@ Each node will feature the following control systems:
 
 An overview of the system layout can be seen below.
 ![System Overview](https://user-images.githubusercontent.com/55364420/171460763-d9bb9312-b48d-41ce-a295-b16fa3d59bd8.jpg)
-
 
 ## Parts Lists
 
@@ -59,3 +59,18 @@ The following sensors are required to build one node.
 The PCBs are designed in [EASYEDA](https://easyeda.com/) and can be ordered from [JLC PCB](https://jlcpcb.com/).
 
 The parts for the PCBs can be found in the [Parts Lists](#parts-lists).
+
+
+## Networking
+The communication between the target nodes and the controller node will be handled using MQTT over Ethernet.
+
+The controller node will act as an MQTT broker and also as a client.  Each of the target nodes will be provisioned with unique ID's by the controller node using the following procedure:
+1. Target node generates random ID, uses this as Client ID
+2. Target node sends "Connection Request" mqtt message to the controller node on topic greenhouse/{Client ID/connection.
+3. Target node begins listening on topic greenhouse/{Client ID}/response
+4. The Controller node verifies the target node can connect, and returns a new production ID on the topic greenhouse/{Client ID}/response
+5. The Target node stores this production ID in the EEPROM and uses this as it's client ID
+
+This procedure ensures that the Controller node can always identify the Target node even after restarts.  It also means that if a Target node PCB is replaced, the new Target node PCB can be programmed with the correct client ID so that the data remains consistent for that unit.
+
+
