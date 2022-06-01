@@ -31,7 +31,8 @@ Each node will feature the following control systems:
 - Soil moisture (Water Solenoid/Pump)
 
 An overview of the system layout can be seen below.
-![System Overview](https://user-images.githubusercontent.com/55364420/171460407-145d79df-f9f1-4df8-a510-924a53a7123f.png)
+![System Overview](https://user-images.githubusercontent.com/55364420/171460763-d9bb9312-b48d-41ce-a295-b16fa3d59bd8.jpg)
+
 
 ## Parts Lists
 
