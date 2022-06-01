@@ -30,6 +30,9 @@ Each node will feature the following control systems:
 - Temperature/Humidity (DC Fan)
 - Soil moisture (Water Solenoid/Pump)
 
+An overview of the system layout can be seen below.
+![System Overview](https://user-images.githubusercontent.com/55364420/171460407-145d79df-f9f1-4df8-a510-924a53a7123f.png)
+
 ## Parts Lists
 
 **Note the following parts lists are not complete and may change.**
