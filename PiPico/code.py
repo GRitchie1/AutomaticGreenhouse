@@ -6,7 +6,7 @@ import adafruit_veml7700
 import adafruit_tca9548a
 from adafruit_seesaw.seesaw import Seesaw
 
-i2c = busio.I2C(board.GP1, board.GP0)    # Pi Pico RP2040
+i2c = busio.I2C(board.GP17, board.GP16)    # Pi Pico RP2040
 
 tempHumid = adafruit_sht31d.SHT31D(i2c)
 veml7700 = adafruit_veml7700.VEML7700(i2c)
