@@ -8,6 +8,8 @@ import adafruit_veml7700
 import adafruit_tca9548a
 from adafruit_seesaw.seesaw import Seesaw
 
+deviceID = "AutoGH_1"
+
 ### MQTT ###
 from adafruit_wiznet5k.adafruit_wiznet5k import *
 import adafruit_wiznet5k.adafruit_wiznet5k_socket as socket
@@ -86,6 +88,7 @@ while True:
     pump.value = 1-pump.value
 
     obj={}
+    obj['ID'] = deviceID
 
     #Env Sensors
     obj['temp'] = tempHumid.temperature
@@ -102,7 +105,7 @@ while True:
     obj['soil'] = soilData
 
     #Output States
-    obj['pump'] = pump.value
+    obj['pump'] = int(pump.value)
 
     packet = json.dumps(obj)
     mqtt_client.publish(mqtt_topic, packet)
@@ -113,10 +116,8 @@ while True:
     if loopcount == 20:
         loopcount = 0
         tempHumid.heater = True
-        print("Sensor Heater status =", tempHumid.heater)
         time.sleep(1)
         tempHumid.heater = False
-        print("Sensor Heater status =", tempHumid.heater)
 
 print("Disconnecting from %s" % mqtt_client.broker)
 mqtt_client.disconnect()
