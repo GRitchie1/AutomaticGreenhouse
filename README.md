@@ -9,6 +9,7 @@ The design of this project is intended to be highly modular, with the ability to
 | Topic | Description |
 |-------|-------------|
 | [Design](#design) | An overview of the design of the project |
+| [Monitoring](#monitoring) | An overview of the design of the project |
 | [Parts Lists](#parts-lists) | Up to date parts lists for the project |
 | [PCBs](#pcbs) | Information regarding the design and manufacture of the custom printed circuit boards |
 | [Networking](#networking) | Information regarding the communication between the target nodes and the controller node. |
@@ -33,6 +34,14 @@ Each node will feature the following control systems:
 
 An overview of the system layout can be seen below.
 ![System Overview](https://user-images.githubusercontent.com/55364420/171460763-d9bb9312-b48d-41ce-a295-b16fa3d59bd8.jpg)
+
+## Monitoring 
+
+Currently monitoring is done using InfluxDB and Grafana running on a Raspberry Pi 4B.  This is also running an MQTT broker and is using Node-Red to recieve and sanitize the telemetry before inserting it into InfluxDB.
+
+The current Grafana dashboard can be seen below.
+
+![image](https://user-images.githubusercontent.com/55364420/181845879-e49c47cf-70e9-4035-a79b-68ded9f6c500.png)
 
 ## Parts Lists
 
