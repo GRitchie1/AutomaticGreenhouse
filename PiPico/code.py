@@ -2,11 +2,12 @@ import time
 import board
 import adafruit_sht31d
 import busio
+import digitalio
 import adafruit_veml7700
 import adafruit_tca9548a
 from adafruit_seesaw.seesaw import Seesaw
 
-i2c = busio.I2C(board.GP17, board.GP16)    # Pi Pico RP2040
+i2c = busio.I2C(board.GP5, board.GP4)    # Pi Pico RP2040
 
 tempHumid = adafruit_sht31d.SHT31D(i2c)
 veml7700 = adafruit_veml7700.VEML7700(i2c)
@@ -16,6 +17,10 @@ tca = adafruit_tca9548a.TCA9548A(i2c)
 ss0 = Seesaw(tca[0], addr=0x36)
 ss1 = Seesaw(tca[1], addr=0x36)
 ss2 = Seesaw(tca[2], addr=0x36)
+
+#Water Pump
+pump = digitalio.DigitalInOut(board.GP0)
+pump.direction = digitalio.Direction.OUTPUT
 
 loopcount = 0
 while True:
@@ -36,6 +41,7 @@ while True:
     print("temp: " + str(temp2) + "  moisture: " + str(touch2))
 
     loopcount += 1
+    pump.value = 1-pump.value
     time.sleep(2)
     # every 10 passes turn on the heater for 1 second
     if loopcount == 10:
