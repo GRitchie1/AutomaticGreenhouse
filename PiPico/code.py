@@ -19,7 +19,7 @@ ss1 = Seesaw(tca[1], addr=0x36)
 ss2 = Seesaw(tca[2], addr=0x36)
 
 #Water Pump
-pump = digitalio.DigitalInOut(board.GP0)
+pump = digitalio.DigitalInOut(board.GP2)
 pump.direction = digitalio.Direction.OUTPUT
 
 loopcount = 0
