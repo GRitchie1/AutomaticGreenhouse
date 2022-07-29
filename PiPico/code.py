@@ -10,8 +10,11 @@ from adafruit_seesaw.seesaw import Seesaw
 
 #Setup
 deviceID = "AutoGH_1"
-minSoilHumid = 500
-maxAirHumid = 70
+control = {
+            'minSoilHumid':500,
+            'maxAirHumid':70
+            }
+
 
 ### MQTT ###
 from adafruit_wiznet5k.adafruit_wiznet5k import *
@@ -29,7 +32,8 @@ SPI0_CSn = board.GP17
 ##reset
 W5x00_RSTn = board.GP20
 
-mqtt_topic = 'AutoGH/data'
+pubTopic = 'AutoGH/data'
+subTopic = 'AutoGH/control'
 mqtt_client = MQTT.MQTT(
     broker="192.168.1.109",  #setup your PC IP address.
     username="iotdash",
@@ -39,6 +43,12 @@ mqtt_client = MQTT.MQTT(
     ssl_context=None,
     keep_alive=60,
 )
+
+def recieveMessage(client, topic, newControl):
+    global control
+    newControl = json.loads(newControl)
+    if newControl != control:
+        control = newControl
 
 MY_MAC = (0x00, 0x01, 0x02, 0x03, 0x04, 0x05)
 IP_ADDRESS = (192, 168, 1, 100)
@@ -64,6 +74,8 @@ print("MAC Address:", [hex(i) for i in eth.mac_address])
 print("My IP address is:", eth.pretty_ip(eth.ip_address))
 
 MQTT.set_socket(socket, eth)
+
+mqtt_client.on_message = recieveMessage
 
 print("Connecting to Broker...")
 mqtt_client.connect()
@@ -92,10 +104,13 @@ fan.direction = digitalio.Direction.OUTPUT
 loopcount = 0
 
 while True:
+    mqtt_client.loop()
+    mqtt_client.subscribe(subTopic)
     loopcount += 1
 
     obj={}
     obj['ID'] = deviceID
+    obj['control']=control
 
     #Env Sensors
     obj['temp'] = tempHumid.temperature
@@ -115,12 +130,12 @@ while True:
     obj['soil'] = soilData
 
     #Control outputs
-    if avgSoilHumid < minSoilHumid:
+    if avgSoilHumid < control['minSoilHumid']:
         pump.value = True
     else:
         pump.value = False
 
-    if obj['humid'] > maxAirHumid:
+    if obj['humid'] > control['maxAirHumid']:
         fan.value = True
     else:
         fan.value = False
@@ -130,7 +145,7 @@ while True:
     obj['fan'] = int(fan.value)
 
     packet = json.dumps(obj)
-    mqtt_client.publish(mqtt_topic, packet)
+    mqtt_client.publish(pubTopic, packet)
 
 
 
