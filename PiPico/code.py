@@ -71,9 +71,8 @@ veml7700 = adafruit_veml7700.VEML7700(i2c)
 
 #Soil Sensors
 tca = adafruit_tca9548a.TCA9548A(i2c)
-ss0 = Seesaw(tca[0], addr=0x36)
-ss1 = Seesaw(tca[1], addr=0x36)
-ss2 = Seesaw(tca[2], addr=0x36)
+numSoilSensors = 3
+soilSensors=[Seesaw(tca[i], addr=0x36) for i in range(numSoilSensors)]
 
 ### Outputs ###
 #Water Pump
@@ -88,16 +87,19 @@ while True:
 
     obj={}
 
-    #Sensors
+    #Env Sensors
     obj['temp'] = tempHumid.temperature
     obj['humid'] = tempHumid.relative_humidity
     obj['light'] = veml7700.light
-    obj['soil0'] = ss0.moisture_read()
-    obj['soiltemp0'] = ss0.get_temp()
-    obj['soil1'] = ss1.moisture_read()
-    obj['soiltemp1'] = ss1.get_temp()
-    obj['soil2'] = ss2.moisture_read()
-    obj['soiltemp2'] = ss2.get_temp()
+
+    #Soil Sensors
+    soilData = []
+    for sensor in soilSensors:
+        soilObj = {}
+        soilObj['soilMoisture'] = sensor.moisture_read()
+        soilObj['soilTemp'] = sensor.get_temp()
+        soilData.append(soilObj)
+    obj['soil'] = soilData
 
     #Output States
     obj['pump'] = pump.value
