@@ -3,11 +3,12 @@ import board
 import adafruit_sht31d
 import busio
 import digitalio
+import json
 import adafruit_veml7700
 import adafruit_tca9548a
 from adafruit_seesaw.seesaw import Seesaw
 
-#MQTT
+### MQTT ###
 from adafruit_wiznet5k.adafruit_wiznet5k import *
 import adafruit_wiznet5k.adafruit_wiznet5k_socket as socket
 import adafruit_minimqtt.adafruit_minimqtt as MQTT
@@ -18,12 +19,12 @@ SPI0_SCK = board.GP18
 SPI0_TX = board.GP19
 SPI0_RX = board.GP16
 SPI0_CSn = board.GP17
-cs = digitalio.DigitalInOut(SPI0_CSn)
+
 
 ##reset
 W5x00_RSTn = board.GP20
 
-
+mqtt_topic = 'AutoGH/data'
 mqtt_client = MQTT.MQTT(
     broker="192.168.1.109",  #setup your PC IP address.
     username="iotdash",
@@ -43,7 +44,7 @@ DNS_SERVER = (8, 8, 8, 8)
 ethernetRst = digitalio.DigitalInOut(W5x00_RSTn)
 ethernetRst.direction = digitalio.Direction.OUTPUT
 
-#cs = digitalio.DigitalInOut(SPI0_CSn)
+cs = digitalio.DigitalInOut(SPI0_CSn)
 
 spi_bus = busio.SPI(SPI0_SCK, MOSI=SPI0_TX, MISO=SPI0_RX)
 
@@ -62,7 +63,7 @@ MQTT.set_socket(socket, eth)
 print("Connecting to Broker...")
 mqtt_client.connect()
 
-#Sensors
+### Sensors ###
 i2c = busio.I2C(board.GP5, board.GP4)    #Init I2C
 
 tempHumid = adafruit_sht31d.SHT31D(i2c)
@@ -74,40 +75,40 @@ ss0 = Seesaw(tca[0], addr=0x36)
 ss1 = Seesaw(tca[1], addr=0x36)
 ss2 = Seesaw(tca[2], addr=0x36)
 
-#Outputs
+### Outputs ###
 #Water Pump
 pump = digitalio.DigitalInOut(board.GP2)
 pump.direction = digitalio.Direction.OUTPUT
 
 loopcount = 0
 while True:
-    print("\nTemperature: %0.1f C" % tempHumid.temperature)
-    print("Humidity: %0.1f %%" % tempHumid.relative_humidity)
-    print("Ambient light:", veml7700.light)
-
-    touch0 = ss0.moisture_read()
-    temp0 = ss0.get_temp()
-    print("temp: " + str(temp0) + "  moisture: " + str(touch0))
-
-    touch1 = ss1.moisture_read()
-    temp1 = ss1.get_temp()
-    print("temp: " + str(temp1) + "  moisture: " + str(touch1))
-
-    touch2 = ss2.moisture_read()
-    temp2 = ss2.get_temp()
-    print("temp: " + str(temp2) + "  moisture: " + str(touch2))
 
     loopcount += 1
     pump.value = 1-pump.value
 
-    mqtt_topic = 'WIZnetTest'
-    text = "Hello Broker, I'm PICO"
-    mqtt_client.publish(mqtt_topic, text)
+    obj={}
 
-    time.sleep(2)
+    #Sensors
+    obj['temp'] = tempHumid.temperature
+    obj['humid'] = tempHumid.relative_humidity
+    obj['light'] = veml7700.light
+    obj['soil0'] = ss0.moisture_read()
+    obj['soiltemp0'] = ss0.get_temp()
+    obj['soil1'] = ss1.moisture_read()
+    obj['soiltemp1'] = ss1.get_temp()
+    obj['soil2'] = ss2.moisture_read()
+    obj['soiltemp2'] = ss2.get_temp()
 
-    # every 10 passes turn on the heater for 1 second
-    if loopcount == 10:
+    #Output States
+    obj['pump'] = pump.value
+
+    packet = json.dumps(obj)
+    mqtt_client.publish(mqtt_topic, packet)
+
+    time.sleep(1)
+
+    # every 20 passes turn on the heater for 1 second
+    if loopcount == 20:
         loopcount = 0
         tempHumid.heater = True
         print("Sensor Heater status =", tempHumid.heater)
