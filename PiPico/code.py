@@ -8,7 +8,10 @@ import adafruit_veml7700
 import adafruit_tca9548a
 from adafruit_seesaw.seesaw import Seesaw
 
+#Setup
 deviceID = "AutoGH_1"
+minSoilHumid = 500
+maxAirHumid = 70
 
 ### MQTT ###
 from adafruit_wiznet5k.adafruit_wiznet5k import *
@@ -81,11 +84,15 @@ soilSensors=[Seesaw(tca[i], addr=0x36) for i in range(numSoilSensors)]
 pump = digitalio.DigitalInOut(board.GP2)
 pump.direction = digitalio.Direction.OUTPUT
 
-loopcount = 0
-while True:
+#Water Pump
+fan = digitalio.DigitalInOut(board.GP3)
+fan.direction = digitalio.Direction.OUTPUT
 
+#Vars
+loopcount = 0
+
+while True:
     loopcount += 1
-    pump.value = 1-pump.value
 
     obj={}
     obj['ID'] = deviceID
@@ -95,29 +102,47 @@ while True:
     obj['humid'] = tempHumid.relative_humidity
     obj['light'] = veml7700.light
 
-    #Soil Sensors
+    #Read Soil Sensors
     soilData = []
+    totalSoilHumid = 0
     for sensor in soilSensors:
         soilObj = {}
         soilObj['soilMoisture'] = sensor.moisture_read()
         soilObj['soilTemp'] = sensor.get_temp()
         soilData.append(soilObj)
+        totalSoilHumid += soilObj['soilMoisture']
+    avgSoilHumid = totalSoilHumid/numSoilSensors
     obj['soil'] = soilData
+
+    #Control outputs
+    if avgSoilHumid < minSoilHumid:
+        pump.value = True
+    else:
+        pump.value = False
+
+    if obj['humid'] > maxAirHumid:
+        fan.value = True
+    else:
+        fan.value = False
 
     #Output States
     obj['pump'] = int(pump.value)
+    obj['fan'] = int(fan.value)
 
     packet = json.dumps(obj)
     mqtt_client.publish(mqtt_topic, packet)
 
+
+
     time.sleep(1)
 
     # every 20 passes turn on the heater for 1 second
-    if loopcount == 20:
-        loopcount = 0
-        tempHumid.heater = True
-        time.sleep(1)
-        tempHumid.heater = False
+    if loopcount >= 20 or tempHumid.heater == True:
+        if tempHumid.heater == True:
+            tempHumid.heater = False
+        else:
+            loopcount = 0
+            tempHumid.heater = True
 
 print("Disconnecting from %s" % mqtt_client.broker)
 mqtt_client.disconnect()
